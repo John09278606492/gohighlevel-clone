@@ -1,0 +1,88 @@
+{
+  "format": "packstub-flow/1",
+  "key": "ghl-deal-won",
+  "name": "Deal won",
+  "category": "CRM",
+  "description": "When an opportunity is marked won: thank the customer and notify the team.",
+  "settings": {},
+  "definition": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 80
+        },
+        "data": {
+          "identifier": "Packstub\\Flow\\Nodes\\Triggers\\RecordUpdated",
+          "label": "Opportunity updated",
+          "description": null,
+          "config": {
+            "model_class": "App\\Models\\Opportunity",
+            "watch": [
+              "status"
+            ],
+            "from": "",
+            "to": "won",
+            "once": true
+          }
+        }
+      },
+      {
+        "id": "thanks",
+        "type": "action",
+        "position": {
+          "x": 320,
+          "y": 0
+        },
+        "data": {
+          "identifier": "App\\Flow\\Actions\\SendContactMessage",
+          "label": "Thank-you email",
+          "description": null,
+          "config": {
+            "channel": "email",
+            "subject": "Welcome aboard!",
+            "body": "Hi {{ model.contact.first_name }},\n\nThank you for choosing us. Here's what happens next..."
+          }
+        }
+      },
+      {
+        "id": "notify",
+        "type": "action",
+        "position": {
+          "x": 320,
+          "y": 180
+        },
+        "data": {
+          "identifier": "Packstub\\Flow\\Nodes\\Actions\\SendNotification",
+          "label": "Tell the team",
+          "description": null,
+          "config": {
+            "title": "Deal won: {{ model.name }}",
+            "body": "{{ model.value }} closed.",
+            "status": "success",
+            "action_label": "",
+            "action_url": ""
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "trigger",
+        "sourceHandle": "output",
+        "target": "thanks",
+        "targetHandle": "input"
+      },
+      {
+        "id": "e2",
+        "source": "trigger",
+        "sourceHandle": "output",
+        "target": "notify",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "format": "packstub-flow/1",
+  "key": "ghl-new-lead-nurture",
+  "name": "New lead nurture",
+  "category": "CRM",
+  "description": "When a contact is created: send a welcome email, add them to your pipeline, then text them the next day.",
+  "settings": {},
+  "definition": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 80
+        },
+        "data": {
+          "identifier": "Packstub\\Flow\\Nodes\\Triggers\\RecordCreated",
+          "label": "Contact created",
+          "description": null,
+          "config": {
+            "model_class": "App\\Models\\Contact",
+            "once": true
+          }
+        }
+      },
+      {
+        "id": "welcome",
+        "type": "action",
+        "position": {
+          "x": 320,
+          "y": 80
+        },
+        "data": {
+          "identifier": "App\\Flow\\Actions\\SendContactMessage",
+          "label": "Welcome email",
+          "description": null,
+          "config": {
+            "channel": "email",
+            "subject": "Thanks for reaching out, {{ model.first_name }}!",
+            "body": "Hi {{ model.first_name }},\n\nThanks for getting in touch. We will be in contact shortly.\n\nTalk soon!"
+          }
+        }
+      },
+      {
+        "id": "opportunity",
+        "type": "action",
+        "position": {
+          "x": 640,
+          "y": 80
+        },
+        "data": {
+          "identifier": "App\\Flow\\Actions\\CreateOpportunity",
+          "label": "Add to pipeline",
+          "description": "Pick the pipeline and stage.",
+          "config": {
+            "pipeline_id": null,
+            "pipeline_stage_id": null,
+            "name": "{{ model.full_name }}",
+            "value": 0
+          }
+        }
+      },
+      {
+        "id": "wait",
+        "type": "action",
+        "position": {
+          "x": 960,
+          "y": 80
+        },
+        "data": {
+          "identifier": "Packstub\\Flow\\Nodes\\Actions\\Wait",
+          "label": "Wait 1 day",
+          "description": null,
+          "config": {
+            "mode": "duration",
+            "duration": 1,
+            "unit": "days"
+          }
+        }
+      },
+      {
+        "id": "sms",
+        "type": "action",
+        "position": {
+          "x": 1280,
+          "y": 80
+        },
+        "data": {
+          "identifier": "App\\Flow\\Actions\\SendContactMessage",
+          "label": "Follow-up SMS",
+          "description": null,
+          "config": {
+            "channel": "sms",
+            "body": "Hi {{ model.first_name }}, just checking in. Want to book a quick call? Reply YES and we'll send a link."
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "trigger",
+        "sourceHandle": "output",
+        "target": "welcome",
+        "targetHandle": "input"
+      },
+      {
+        "id": "e2",
+        "source": "welcome",
+        "sourceHandle": "output",
+        "target": "opportunity",
+        "targetHandle": "input"
+      },
+      {
+        "id": "e3",
+        "source": "opportunity",
+        "sourceHandle": "output",
+        "target": "wait",
+        "targetHandle": "input"
+      },
+      {
+        "id": "e4",
+        "source": "wait",
+        "sourceHandle": "output",
+        "target": "sms",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../../../vendor/guava/calendar/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../app/Livewire/**/*';
+@source '../../../../resources/views/**/*';
+@source '../../../../vendor/guava/calendar/resources/**/*';
+@source '../../../../vendor/relaticle/flowforge/resources/views/**/*';
+@source '../../../../vendor/finity-labs/fin-mail/resources/views/**/*';
+@source '../../../../vendor/wooserv/filament-date-time-slots/resources/views/**/*';
+
+/* ---------- Conversations thread ---------- */
+.ghl-thread {
+    @apply flex flex-col gap-3 rounded-xl bg-gray-50 p-4 dark:bg-white/5;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+.ghl-thread__empty { @apply py-8 text-center text-sm text-gray-500; }
+.ghl-msg { @apply flex max-w-[75%] flex-col gap-1; }
+.ghl-msg--out { @apply self-end items-end; }
+.ghl-msg--in { @apply self-start items-start; }
+.ghl-msg--note { @apply self-center items-center max-w-[90%]; }
+.ghl-msg__meta { @apply text-xs text-gray-500 dark:text-gray-400; }
+.ghl-msg__channel { @apply font-semibold; }
+.ghl-msg__failed { @apply font-semibold text-danger-600; }
+.ghl-msg__bubble { @apply rounded-2xl px-4 py-2 text-sm shadow-sm; }
+.ghl-msg--out .ghl-msg__bubble { @apply bg-primary-600 text-white; }
+.ghl-msg--in .ghl-msg__bubble { @apply bg-white text-gray-900 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:ring-white/10; }
+.ghl-msg--note .ghl-msg__bubble { @apply bg-warning-50 text-warning-900 ring-1 ring-warning-200 dark:bg-warning-500/10 dark:text-warning-200; }
+.ghl-msg__subject { @apply mb-1 font-semibold; }
+.ghl-composer { @apply flex flex-col gap-3; }
+.ghl-composer__actions { @apply flex justify-end; }
+
+/* ---------- Public pages (booking + funnels) ---------- */
+.ghl-public { @apply min-h-screen bg-gray-50 text-gray-900 antialiased; }
+.ghl-public.ghl-embed { @apply bg-transparent; }
+.ghl-booking-page { @apply mx-auto max-w-4xl px-4 py-10; }
+.ghl-embed .ghl-booking-page { @apply py-2; }
+.ghl-booking-page__header { @apply mb-6 text-center; }
+.ghl-booking-page__logo { @apply mx-auto mb-3 h-14 w-14 rounded-full object-cover; }
+.ghl-booking-page__business { @apply text-sm font-medium uppercase tracking-wide text-primary-600; }
+.ghl-booking-page h1 { @apply mt-1 text-3xl font-bold; }
+.ghl-booking-page__meta { @apply mt-1 text-sm text-gray-500; }
+.ghl-booking-page__desc { @apply mx-auto mt-3 max-w-xl text-gray-600; }
+.ghl-booking-widget { @apply rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200; }
+.ghl-booking-widget form { @apply flex flex-col gap-6; }
+.ghl-booking-widget__submit { @apply flex justify-end; }
+.ghl-booked { @apply py-10 text-center; }
+.ghl-booked__icon { @apply mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-success-100 text-2xl text-success-700; }
+.ghl-booked h2 { @apply text-2xl font-bold; }
+.ghl-booked p { @apply mt-2 text-gray-600; }
+
+.ghl-site-page { @apply min-h-screen bg-white; }
+.ghl-site-page .fpb-page { @apply mx-auto max-w-5xl px-4 py-12; }
+.ghl-button { @apply inline-block rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white no-underline hover:bg-primary-500; }
+.ghl-missing { @apply rounded bg-danger-50 p-3 text-sm text-danger-700; }
+.ghl-form { @apply mx-auto max-w-xl; }

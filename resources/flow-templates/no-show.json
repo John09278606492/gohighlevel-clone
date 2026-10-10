@@ -1,0 +1,60 @@
+{
+  "format": "packstub-flow/1",
+  "key": "ghl-no-show",
+  "name": "No-show follow-up",
+  "category": "CRM",
+  "description": "When an appointment is marked no-show: text the contact to rebook.",
+  "settings": {},
+  "definition": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 80
+        },
+        "data": {
+          "identifier": "Packstub\\Flow\\Nodes\\Triggers\\RecordUpdated",
+          "label": "Appointment updated",
+          "description": null,
+          "config": {
+            "model_class": "App\\Models\\Appointment",
+            "watch": [
+              "status"
+            ],
+            "from": "",
+            "to": "no_show",
+            "once": false
+          }
+        }
+      },
+      {
+        "id": "sms",
+        "type": "action",
+        "position": {
+          "x": 320,
+          "y": 80
+        },
+        "data": {
+          "identifier": "App\\Flow\\Actions\\SendContactMessage",
+          "label": "Rebook SMS",
+          "description": null,
+          "config": {
+            "channel": "sms",
+            "body": "Hi {{ model.contact.first_name }}, sorry we missed you today! Want to pick a new time? {{ model.calendar.slug }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "trigger",
+        "sourceHandle": "output",
+        "target": "sms",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

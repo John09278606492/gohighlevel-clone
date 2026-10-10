@@ -1,0 +1,80 @@
+{
+  "format": "packstub-flow/1",
+  "key": "ghl-appointment-booked",
+  "name": "Appointment booked",
+  "category": "CRM",
+  "description": "When an appointment is booked: confirm it by email and move the contact's opportunity to the booked stage.",
+  "settings": {},
+  "definition": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 80
+        },
+        "data": {
+          "identifier": "Packstub\\Flow\\Nodes\\Triggers\\RecordCreated",
+          "label": "Appointment booked",
+          "description": null,
+          "config": {
+            "model_class": "App\\Models\\Appointment",
+            "once": true
+          }
+        }
+      },
+      {
+        "id": "confirm",
+        "type": "action",
+        "position": {
+          "x": 320,
+          "y": 80
+        },
+        "data": {
+          "identifier": "App\\Flow\\Actions\\SendContactMessage",
+          "label": "Confirmation email",
+          "description": null,
+          "config": {
+            "channel": "email",
+            "subject": "You're booked: {{ model.title }}",
+            "body": "Hi {{ model.contact.first_name }},\n\nYou're confirmed for {{ model.starts_at }}.\n\nSee you then!"
+          }
+        }
+      },
+      {
+        "id": "move",
+        "type": "action",
+        "position": {
+          "x": 640,
+          "y": 80
+        },
+        "data": {
+          "identifier": "App\\Flow\\Actions\\MoveOpportunityStage",
+          "label": "Move opportunity",
+          "description": "Pick the 'Appointment booked' stage.",
+          "config": {
+            "pipeline_stage_id": null,
+            "status": null
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "trigger",
+        "sourceHandle": "output",
+        "target": "confirm",
+        "targetHandle": "input"
+      },
+      {
+        "id": "e2",
+        "source": "confirm",
+        "sourceHandle": "output",
+        "target": "move",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}
