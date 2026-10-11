@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Models\SubAccount;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -36,10 +38,17 @@ class AgencyPanelProvider extends PanelProvider
             ])
             ->viteTheme('resources/css/filament/app/theme.css')
             ->navigationItems([
-                NavigationItem::make('Switch to sub-account')
-                    ->icon('heroicon-o-arrow-right-circle')
-                    ->url(fn () => url('/app'))
-                    ->sort(1000),
+                NavigationItem::make('back-to-sub-account')
+                    ->label(fn () => ($last = static::lastSubAccount()) ? "Back to {$last->name}" : 'Open a sub-account')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->url(fn () => static::lastSubAccountUrl())
+                    ->sort(-100),
+            ])
+            ->userMenuItems([
+                Action::make('backToSubAccount')
+                    ->label('Back to sub-account')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->url(fn () => static::lastSubAccountUrl()),
             ])
             ->discoverResources(in: app_path('Filament/Agency/Resources'), for: 'App\Filament\Agency\Resources')
             ->discoverPages(in: app_path('Filament/Agency/Pages'), for: 'App\Filament\Agency\Pages')
@@ -61,5 +70,19 @@ class AgencyPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    protected static function lastSubAccount(): ?SubAccount
+    {
+        $id = session('last_sub_account_id');
+
+        return ($id ? SubAccount::find($id) : null) ?? SubAccount::query()->orderBy('name')->first();
+    }
+
+    protected static function lastSubAccountUrl(): string
+    {
+        $last = static::lastSubAccount();
+
+        return $last ? url('/app/'.$last->slug) : url('/app');
     }
 }

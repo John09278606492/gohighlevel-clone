@@ -51,6 +51,8 @@ php artisan serve    # plus `php artisan queue:work` and `php artisan schedule:w
 | `admin@example.com` | `password` | Agency view (`/agency`) and every sub-account |
 | `staff@example.com` | `password` | Only the Bright Smile Dental sub-account |
 
+**Moving between the two views.** The agency view (`/agency`) is the super-admin side: every sub-account, the team, and email templates. To reach it from a sub-account, use **Agency view** in the sidebar or the avatar menu. To go back, use **Back to <sub-account>** at the top of the agency sidebar (it remembers the last one you opened), the avatar menu, or **Switch to** on any row under Sub-accounts. Inside `/app`, the sub-account name at the top of the sidebar switches between sub-accounts.
+
 Pages to try after seeding:
 - `/app/bright-smile-dental`: the sub-account dashboard
 - `/book/bright-smile-dental/discovery-call`: the public booking page

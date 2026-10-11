@@ -80,6 +80,28 @@ class SmokeTest extends TestCase
         }
     }
 
+    public function test_opening_a_sub_account_is_remembered(): void
+    {
+        $this->actingAs($this->admin());
+
+        $account = SubAccount::where('slug', 'peak-roofing-co')->firstOrFail();
+
+        $this->get('/app/peak-roofing-co')->assertOk()
+            ->assertSee('Agency view')
+            ->assertSessionHas('last_sub_account_id', $account->id);
+    }
+
+    public function test_agency_shows_back_to_last_sub_account_link(): void
+    {
+        $this->actingAs($this->admin());
+        $account = SubAccount::where('slug', 'peak-roofing-co')->firstOrFail();
+
+        $this->withSession(['last_sub_account_id' => $account->id])
+            ->get('/agency')->assertOk()
+            ->assertSee('Back to Peak Roofing Co')
+            ->assertSee(url('/app/peak-roofing-co'), false);
+    }
+
     public function test_staff_cannot_open_agency_or_other_sub_accounts(): void
     {
         $staff = User::where('email', 'staff@example.com')->first();

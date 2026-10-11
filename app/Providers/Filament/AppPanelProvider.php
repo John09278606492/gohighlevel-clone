@@ -13,6 +13,8 @@ use App\Models\Opportunity;
 use App\Models\SubAccount;
 use App\PageBuilder\Shortcodes;
 use CarlJanzell\FilamentPageBuilder\FilamentPageBuilderPlugin;
+use App\Http\Middleware\RememberSubAccount;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -73,6 +75,14 @@ class AppPanelProvider extends PanelProvider
                     ->visible(fn () => (bool) auth()->user()?->is_agency_admin)
                     ->sort(1000),
             ])
+            ->userMenuItems([
+                Action::make('agencyView')
+                    ->label('Agency view (all sub-accounts)')
+                    ->icon('heroicon-o-building-office-2')
+                    ->url(fn () => url('/agency'))
+                    ->visible(fn () => (bool) auth()->user()?->is_agency_admin),
+            ])
+            ->tenantMiddleware([RememberSubAccount::class], isPersistent: true)
             ->discoverResources(in: app_path('Filament/App/Resources'), for: 'App\Filament\App\Resources')
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\Filament\App\Pages')
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')
