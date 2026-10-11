@@ -27,24 +27,22 @@ The workflow templates in `resources/flow-templates` are New lead nurture, Appoi
 
 ## Setup
 
-Requirements: PHP 8.3+ with `bcmath`, `intl` and `zip`; Composer; Node 20+.
+Requirements: PHP 8.3+ (with the `bcmath`, `intl`, `zip` and `pdo_sqlite` extensions), Composer and Node.js. On Windows, [Laragon](https://laragon.org) or [Herd](https://herd.laravel.com) installs all three.
 
+### One click
+| | Windows | Mac / Linux |
+|---|---|---|
+| **Set up and open the app** (also resets the demo data) | double-click `setup.bat` | `./setup.sh` |
+| **Start it again later** | double-click `start.bat` | `./start.sh` |
+| **Run the tests** | double-click `test.bat` | `./test.sh` |
+
+Setup checks for missing tools and PHP extensions, installs everything, creates a SQLite database with demo data, builds the assets, then starts the app and opens http://127.0.0.1:8000/app/login. The start script also runs the queue worker and scheduler, which workflows need for their waits and scheduled triggers.
+
+### By hand
 ```bash
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/database.sqlite          # or point DB_* at MySQL/Postgres
-php artisan migrate --seed
-php artisan storage:link
-npm install && npm run build
-php artisan serve
-```
-
-To run workflows that include waits, and the scheduled triggers, also start:
-
-```bash
-php artisan queue:work
-php artisan schedule:work     # runs packstub-flow:cron every minute
+composer run setup   # install, .env, SQLite database, demo data, build assets
+composer run test    # run the tests
+php artisan serve    # plus `php artisan queue:work` and `php artisan schedule:work` for workflows
 ```
 
 ### Demo logins (from the seeder)
@@ -59,10 +57,6 @@ Pages to try after seeding:
 - `/p/bright-smile-dental/free-consultation`: a funnel step with an embedded form
 
 ## Tests
-
-```bash
-php artisan test
-```
 
 The tests load every screen, check that staff can't reach other sub-accounts or the agency view, book through the public page, submit a form and check the contact it creates, drag a pipeline card, and run a workflow end to end, including a check that workflows stay inside their own sub-account.
 

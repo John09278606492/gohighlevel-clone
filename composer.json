@@ -46,6 +46,7 @@
     },
     "scripts": {
         "setup": [
+            "Composer\\Config::disableProcessTimeout",
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
@@ -60,6 +61,7 @@
             "@php artisan dev"
         ],
         "test": [
+            "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
