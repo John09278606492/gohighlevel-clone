@@ -19,13 +19,21 @@ class SubAccount extends Model implements HasAvatar
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'is_active' => 'boolean',
+            'chat_widget_enabled' => 'boolean',
+            'twilio_token' => 'encrypted',
+            'stripe_secret_key' => 'encrypted',
+            'default_tax_rate' => 'decimal:2',
+            'review_threshold' => 'integer',
+        ];
     }
 
     protected static function booted(): void
     {
         static::creating(function (SubAccount $account): void {
             $account->slug ??= static::uniqueSlug($account->name);
+            $account->inbound_secret ??= Str::random(32);
         });
 
         // Every new sub-account starts with a default sales pipeline and a booking calendar.
@@ -122,6 +130,96 @@ class SubAccount extends Model implements HasAvatar
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function customFields(): HasMany
+    {
+        return $this->hasMany(CustomField::class)->orderBy('sort');
+    }
+
+    public function customValues(): HasMany
+    {
+        return $this->hasMany(CustomValue::class);
+    }
+
+    public function smartLists(): HasMany
+    {
+        return $this->hasMany(SmartList::class)->orderBy('sort');
+    }
+
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
+    public function triggerLinks(): HasMany
+    {
+        return $this->hasMany(TriggerLink::class);
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function reviewRequests(): HasMany
+    {
+        return $this->hasMany(ReviewRequest::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    public function courses(): HasMany
+    {
+        return $this->hasMany(Course::class);
+    }
+
+    public function socialPosts(): HasMany
+    {
+        return $this->hasMany(SocialPost::class);
+    }
+
+    public function apiKeys(): HasMany
+    {
+        return $this->hasMany(ApiKey::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    public function hasTwilio(): bool
+    {
+        return filled($this->twilio_sid) && filled($this->twilio_token) && filled($this->twilio_from);
+    }
+
+    public function hasStripe(): bool
+    {
+        return filled($this->stripe_secret_key);
+    }
+
+    public function chatWidgetSnippet(): string
+    {
+        return '<script src="'.route('widget.script', $this).'" async></script>';
     }
 
     public function getFilamentAvatarUrl(): ?string

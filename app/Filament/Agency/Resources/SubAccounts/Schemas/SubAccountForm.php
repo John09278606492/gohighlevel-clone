@@ -2,6 +2,7 @@
 
 namespace App\Filament\Agency\Resources\SubAccounts\Schemas;
 
+use App\Models\Snapshot;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -23,7 +24,13 @@ class SubAccountForm
                 Select::make('timezone')->options(array_combine(timezone_identifiers_list(), timezone_identifiers_list()))->searchable()->default(config('app.timezone')),
                 TextInput::make('address')->columnSpanFull(),
                 FileUpload::make('logo')->image()->disk('public')->directory('logos'),
-                Toggle::make('is_active')->default(true),
+                Toggle::make('is_active')->default(true)->helperText('Inactive sub-accounts are hidden from their users.'),
+            ]),
+            Section::make('Start from a snapshot')->columnSpanFull()->visibleOn('create')->schema([
+                Select::make('snapshot_id')->label('Snapshot')
+                    ->options(fn () => Snapshot::latest()->pluck('name', 'id'))
+                    ->placeholder('No snapshot (default pipeline and calendar only)')
+                    ->dehydrated(false),
             ]),
         ]);
     }

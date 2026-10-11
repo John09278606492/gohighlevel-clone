@@ -39,7 +39,15 @@ class ViewConversation extends Page
     {
         $this->record = $this->resolveRecord($record);
         $this->record->update(['unread_count' => 0]);
-        $this->form->fill(['channel' => $this->record->contact->email ? 'email' : 'sms']);
+        $this->form->fill(['channel' => $this->defaultChannel()]);
+    }
+
+    /** Reply on the channel the contact last wrote in. */
+    protected function defaultChannel(): string
+    {
+        $last = $this->record->messages()->where('direction', 'inbound')->latest('id')->value('channel');
+
+        return $last ?: ($this->record->contact->email ? 'email' : 'sms');
     }
 
     public function getTitle(): string|Htmlable
@@ -59,7 +67,7 @@ class ViewConversation extends Page
             ->components([
                 Grid::make(4)->schema([
                     Select::make('channel')
-                        ->options(['email' => 'Email', 'sms' => 'SMS', 'note' => 'Internal note'])
+                        ->options(['email' => 'Email', 'sms' => 'SMS', 'chat' => 'Web chat', 'note' => 'Internal note'])
                         ->selectablePlaceholder(false)
                         ->live()
                         ->required(),
@@ -110,11 +118,16 @@ class ViewConversation extends Page
                 ->icon('heroicon-o-arrow-down-left')
                 ->color('gray')
                 ->schema([
-                    Select::make('channel')->options(['email' => 'Email', 'sms' => 'SMS'])->default('sms')->required(),
+                    Select::make('channel')->options(['email' => 'Email', 'sms' => 'SMS', 'chat' => 'Web chat'])->default('sms')->required(),
                     Textarea::make('body')->required(),
                 ])
                 ->action(function (array $data): void {
-                    Message::create($data + ['conversation_id' => $this->record->id, 'direction' => 'inbound', 'status' => 'received']);
+                    \App\Services\InboundMessages::receive(
+                        $this->record->subAccount,
+                        array_filter(['email' => $this->record->contact->email, 'phone' => $this->record->contact->phone]),
+                        $data['channel'],
+                        $data['body'],
+                    );
                     $this->record->update(['unread_count' => 0]);
                 }),
             Action::make('contact')

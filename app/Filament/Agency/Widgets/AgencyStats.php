@@ -18,6 +18,9 @@ class AgencyStats extends StatsOverviewWidget
             Stat::make('Contacts (all accounts)', number_format(Contact::count()))
                 ->description(Contact::where('created_at', '>=', now()->startOfMonth())->count().' new this month'),
             Stat::make('Open pipeline (all accounts)', '$'.number_format((float) Opportunity::where('status', 'open')->sum('value'))),
+            Stat::make('Revenue this month (all accounts)', '$'.number_format((float) \App\Models\Payment::where('paid_at', '>=', now()->startOfMonth())->sum('amount'), 2)),
+            Stat::make('Messages sent this month', number_format(\App\Models\Message::where('direction', 'outbound')->where('channel', '!=', 'note')->where('created_at', '>=', now()->startOfMonth())->count())),
+            Stat::make('Average review', number_format((float) \App\Models\Review::avg('rating'), 1).' ★')->description(\App\Models\Review::count().' reviews'),
             Stat::make('Appointments this week', Appointment::whereBetween('starts_at', [now()->startOfWeek(), now()->endOfWeek()])->where('status', '!=', 'cancelled')->count()),
         ];
     }

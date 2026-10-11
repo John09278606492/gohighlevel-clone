@@ -2,7 +2,9 @@
 
 namespace App\Forms;
 
+use App\Models\Activity;
 use App\Models\Contact;
+use App\Support\CrmEvents;
 use App\Models\SubAccount;
 use Illuminate\Support\Str;
 use Packstub\FormBuilder\Contracts\SubmissionSink;
@@ -57,6 +59,9 @@ class CreateContactFromSubmission implements SubmissionSink
             ->implode("\n");
 
         $contact->notes()->create(['body' => "Submitted form \"{$form->name}\"\n\n{$lines}"]);
+
+        Activity::log($contact, 'form', "Submitted form \"{$form->name}\"", $submission);
+        CrmEvents::fire('form_submitted', $contact, $submission, ['form' => $form->name, 'answers' => $submission->data]);
     }
 
     private function splitName(string $name, array &$attributes): void

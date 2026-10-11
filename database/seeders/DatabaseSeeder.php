@@ -3,6 +3,19 @@
 namespace Database\Seeders;
 
 use App\Models\Appointment;
+use App\Models\Campaign;
+use App\Models\CampaignRecipient;
+use App\Models\Course;
+use App\Models\CustomField;
+use App\Models\CustomValue;
+use App\Models\Document;
+use App\Models\Invoice;
+use App\Models\Product;
+use App\Models\Review;
+use App\Models\ReviewRequest;
+use App\Models\SmartList;
+use App\Models\SocialPost;
+use App\Models\TriggerLink;
 use App\Models\Contact;
 use App\Models\Funnel;
 use App\Models\Message;
@@ -159,5 +172,156 @@ class DatabaseSeeder extends Seeder
                 ['type' => 'shortcode', 'data' => ['code' => '[booking calendar="'.$calendar->slug.'"]']],
             ],
         ]);
+
+        $this->seedGrowth($account, $contacts, $owner, $pipeline);
+    }
+
+    /** Demo data for the marketing, payments, reputation and membership features. */
+    private function seedGrowth(SubAccount $account, $contacts, User $owner, $pipeline): void
+    {
+        $faker = fake();
+        $isDental = str_contains($account->slug, 'dental');
+
+        $account->update([
+            'google_review_url' => 'https://search.google.com/local/writereview?placeid=demo',
+            'chat_widget_greeting' => 'Hi! Questions about '.$account->name.'? We usually reply within minutes.',
+            'default_tax_rate' => 8.25,
+            'invoice_footer' => 'Thank you for your business! Payment by bank transfer: ACME Bank 000-111-222.',
+        ]);
+
+        // Custom fields and values
+        $fields = $isDental
+            ? [['Insurance provider', 'insurance_provider', 'select', ['Delta Dental', 'Cigna', 'MetLife', 'None']], ['Last cleaning', 'last_cleaning', 'date', null]]
+            : [['Roof age (years)', 'roof_age', 'number', null], ['Roof type', 'roof_type', 'select', ['Asphalt shingle', 'Metal', 'Tile', 'Flat']]];
+        foreach ($fields as $i => [$name, $key, $type, $options]) {
+            CustomField::create(['sub_account_id' => $account->id, 'name' => $name, 'key' => $key, 'type' => $type, 'options' => $options, 'sort' => $i]);
+        }
+        CustomValue::create(['sub_account_id' => $account->id, 'key' => 'promo_code', 'value' => $isDental ? 'SMILE20' : 'ROOF10']);
+        foreach ($contacts->take(12) as $contact) {
+            $contact->forceFill(['custom_fields' => $isDental
+                ? ['insurance_provider' => $faker->randomElement(['Delta Dental', 'Cigna', 'MetLife', 'None'])]
+                : ['roof_age' => $faker->numberBetween(2, 30), 'roof_type' => $faker->randomElement(['Asphalt shingle', 'Metal', 'Tile'])]])->saveQuietly();
+        }
+
+        // Smart lists
+        SmartList::create(['sub_account_id' => $account->id, 'user_id' => $owner->id, 'name' => 'Hot leads', 'criteria' => ['tags_any' => ['hot', 'vip'], 'type' => 'lead']]);
+        SmartList::create(['sub_account_id' => $account->id, 'user_id' => $owner->id, 'name' => 'Customers', 'criteria' => ['type' => 'customer', 'exclude_dnd' => true], 'sort' => 1]);
+        SmartList::create(['sub_account_id' => $account->id, 'user_id' => $owner->id, 'name' => 'Gone quiet (14 days)', 'criteria' => ['inactive_for_days' => 14], 'sort' => 2]);
+
+        // Products, invoices and payments
+        $products = collect($isDental
+            ? [['Teeth whitening', 350], ['Cleaning & exam', 180], ['Invisalign consult', 0]]
+            : [['Roof inspection', 199], ['Shingle repair (per sq)', 450], ['Gutter cleaning', 150]])
+            ->map(fn ($p) => Product::create(['sub_account_id' => $account->id, 'name' => $p[0], 'price' => $p[1]]));
+
+        foreach ($contacts->slice(2, 6)->values() as $i => $contact) {
+            $product = $products[$i % $products->count()];
+            $invoice = Invoice::create([
+                'sub_account_id' => $account->id,
+                'contact_id' => $contact->id,
+                'title' => $product->name,
+                'status' => 'sent',
+                'issue_date' => now()->subDays(20 - $i * 3),
+                'due_date' => now()->subDays(20 - $i * 3)->addDays(14),
+                'tax_rate' => 8.25,
+                'sent_at' => now()->subDays(20 - $i * 3),
+            ]);
+            $invoice->items()->create(['product_id' => $product->id, 'description' => $product->name, 'quantity' => 1 + $i % 2, 'unit_price' => max(99, (float) $product->price)]);
+            $invoice->recalculate();
+            if ($i < 4) {
+                $invoice->recordPayment((float) $invoice->total, $faker->randomElement(['card', 'bank_transfer', 'cash']), 'DEMO-'.$account->id.'-'.$i);
+            }
+        }
+
+        // Reviews
+        foreach ($contacts->slice(8, 7)->values() as $i => $contact) {
+            $rating = [5, 5, 4, 5, 3, 5, 2][$i];
+            $request = ReviewRequest::create(['sub_account_id' => $account->id, 'contact_id' => $contact->id, 'channel' => 'sms', 'sent_at' => now()->subDays(10 - $i), 'opened_at' => now()->subDays(9 - $i), 'completed_at' => now()->subDays(9 - $i)]);
+            Review::create([
+                'sub_account_id' => $account->id,
+                'contact_id' => $contact->id,
+                'review_request_id' => $request->id,
+                'rating' => $rating,
+                'author_name' => $contact->full_name,
+                'is_public' => $rating >= 4,
+                'comment' => $rating >= 4
+                    ? $faker->randomElement(['Friendly team and quick service!', 'Highly recommend, very professional.', 'Best experience I\'ve had, thank you!', 'On time and great value.'])
+                    : 'Had to wait longer than expected.',
+                'created_at' => now()->subDays(9 - $i),
+            ]);
+        }
+
+        // A proposal waiting for signature
+        $opportunity = Opportunity::where('sub_account_id', $account->id)->where('status', 'open')->first();
+        Document::create([
+            'sub_account_id' => $account->id,
+            'contact_id' => $opportunity?->contact_id ?? $contacts->first()->id,
+            'opportunity_id' => $opportunity?->id,
+            'title' => $isDental ? 'Treatment plan & estimate' : 'Roof replacement proposal',
+            'amount' => $opportunity?->value ?? 2500,
+            'status' => 'sent',
+            'sent_at' => now()->subDay(),
+            'expires_on' => now()->addDays(14),
+            'body' => '<h2>Scope</h2><p>'.($isDental ? 'Full exam, cleaning and whitening over two visits.' : 'Tear-off and replacement with architectural shingles, new underlayment and flashing.').'</p><h2>Investment</h2><p>See the amount above. 50% deposit on signing, balance on completion.</p><h2>Terms</h2><p>Valid for 14 days.</p>',
+        ]);
+
+        // Membership course
+        $course = Course::create([
+            'sub_account_id' => $account->id,
+            'title' => $isDental ? 'Healthy Smile Academy' : 'Homeowner Roof Care 101',
+            'description' => $isDental ? 'Short videos on caring for your teeth between visits.' : 'Keep your roof in shape between inspections.',
+            'is_published' => true,
+        ]);
+        foreach (['Welcome', 'The basics', 'Common mistakes', 'Your checklist'] as $i => $title) {
+            $course->lessons()->create([
+                'module' => $i < 2 ? 'Module 1: Getting started' : 'Module 2: Going further',
+                'title' => $title,
+                'video_url' => $i === 0 ? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' : null,
+                'content' => '<p>Lesson content for "'.$title.'". Replace this with your own material.</p>',
+                'sort' => $i,
+            ]);
+        }
+        $products->first()->update(['course_id' => $course->id]);
+        $course->enroll($contacts[2], 'purchase');
+
+        // Marketing
+        $link = TriggerLink::create(['sub_account_id' => $account->id, 'name' => 'Spring offer', 'url' => $account->website ?: 'https://example.com/offer', 'add_tags' => ['clicked-offer']]);
+        $campaign = Campaign::create([
+            'sub_account_id' => $account->id,
+            'user_id' => $owner->id,
+            'name' => 'Spring newsletter',
+            'channel' => 'email',
+            'subject' => 'Spring news from '.$account->name,
+            'body' => '<p>Hi {{ contact.first_name }},</p><p>Spring is here! Use code <strong>{{ custom_values.promo_code }}</strong> this month.</p><p><a href="https://example.com/offer">See the offer</a></p>',
+            'tags' => ['newsletter'],
+            'status' => 'sent',
+            'sent_at' => now()->subDays(5),
+        ]);
+        $recipients = $contacts->take(10);
+        foreach ($recipients as $i => $contact) {
+            CampaignRecipient::create([
+                'campaign_id' => $campaign->id, 'contact_id' => $contact->id, 'status' => 'sent', 'sent_at' => now()->subDays(5),
+                'opened_at' => $i < 6 ? now()->subDays(4) : null, 'clicked_at' => $i < 2 ? now()->subDays(4) : null,
+            ]);
+        }
+        $campaign->update(['recipients_count' => 10, 'sent_count' => 10, 'opened_count' => 6, 'clicked_count' => 2]);
+        Campaign::create([
+            'sub_account_id' => $account->id, 'user_id' => $owner->id, 'name' => 'Re-engagement SMS', 'channel' => 'sms',
+            'body' => 'Hi {{ contact.first_name }}, it\'s been a while! Book your next visit: {{ link.'.$link->code.' }}',
+            'smart_list_id' => SmartList::where('sub_account_id', $account->id)->where('name', 'Gone quiet (14 days)')->value('id'),
+            'status' => 'draft',
+        ]);
+
+        foreach ([[1, 'scheduled'], [3, 'scheduled'], [-2, 'published']] as [$days, $status]) {
+            SocialPost::create([
+                'sub_account_id' => $account->id,
+                'user_id' => $owner->id,
+                'content' => $faker->randomElement(['Spring special: book this week and save!', 'Meet our team 👋', 'Tip of the week from the experts.', '5-star review from a happy customer ⭐']),
+                'platforms' => ['facebook', 'instagram'],
+                'status' => $status,
+                'scheduled_at' => now()->addDays($days)->setTime(9, 0),
+                'published_at' => $status === 'published' ? now()->addDays($days)->setTime(9, 0) : null,
+            ]);
+        }
     }
 }

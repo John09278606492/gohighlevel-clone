@@ -50,12 +50,22 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
     {
         return $this->is_agency_admin
             ? SubAccount::orderBy('name')->get()
-            : $this->subAccounts()->orderBy('name')->get();
+            : $this->subAccounts()->where('is_active', true)->orderBy('name')->get();
     }
 
     public function canAccessTenant(Model $tenant): bool
     {
-        return $this->is_agency_admin || $this->subAccounts()->whereKey($tenant)->exists();
+        return $this->is_agency_admin || $this->subAccounts()->whereKey($tenant)->where('is_active', true)->exists();
+    }
+
+    /** Sub-account admins (and agency admins) manage settings, team, integrations and billing. */
+    public function isAdminOf(?Model $tenant): bool
+    {
+        if ($this->is_agency_admin) {
+            return true;
+        }
+
+        return $tenant !== null && $this->subAccounts()->whereKey($tenant)->wherePivot('role', 'admin')->exists();
     }
 
     public function getDefaultTenant(Panel $panel): ?Model

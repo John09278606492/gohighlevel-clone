@@ -4,6 +4,7 @@ namespace App\PageBuilder;
 
 use App\Models\Calendar;
 use App\Models\Page;
+use App\Models\Review;
 use Illuminate\Support\HtmlString;
 use Packstub\FormBuilder\Models\Form;
 
@@ -66,5 +67,33 @@ class Shortcodes
             e($next->publicUrl()),
             e($attributes['label'] ?? 'Continue'),
         ));
+    }
+
+    /** [reviews limit="6" min="4"] shows recent public reviews of the page's sub-account. */
+    public static function reviews(array $attributes = []): HtmlString|string
+    {
+        $page = static::page();
+
+        if (! $page) {
+            return '';
+        }
+
+        $reviews = Review::where('sub_account_id', $page->sub_account_id)
+            ->where('is_public', true)
+            ->where('rating', '>=', (int) ($attributes['min'] ?? 4))
+            ->whereNotNull('comment')
+            ->latest()
+            ->limit(min(24, (int) ($attributes['limit'] ?? 6)))
+            ->get();
+
+        return new HtmlString(view('shortcodes.reviews', ['reviews' => $reviews])->render());
+    }
+
+    /** [chat] loads the website chat widget on this page. */
+    public static function chat(array $attributes = []): HtmlString|string
+    {
+        $account = static::page()?->subAccount;
+
+        return $account && $account->chat_widget_enabled ? new HtmlString($account->chatWidgetSnippet()) : '';
     }
 }

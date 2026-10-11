@@ -55,3 +55,66 @@
 .ghl-button { @apply inline-block rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white no-underline hover:bg-primary-500; }
 .ghl-missing { @apply rounded bg-danger-50 p-3 text-sm text-danger-700; }
 .ghl-form { @apply mx-auto max-w-xl; }
+
+/* ---------- Client-facing documents (invoices, reviews, contracts, portal) ---------- */
+.ghl-doc { @apply mx-auto flex max-w-3xl flex-col gap-5 px-4 py-10; }
+.ghl-doc--narrow { @apply max-w-lg; }
+.ghl-doc h1 { @apply text-2xl font-bold; }
+.ghl-doc h2 { @apply mb-3 text-lg font-semibold; }
+.ghl-doc__brand { @apply flex items-center gap-3; }
+.ghl-doc__logo { @apply h-12 w-12 rounded-full object-cover; }
+.ghl-doc__business { @apply font-semibold text-primary-700; }
+.ghl-doc__muted { @apply text-sm text-gray-500; }
+.ghl-doc__head { @apply mb-6 flex flex-wrap items-start justify-between gap-4; }
+.ghl-doc__meta { @apply grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm; }
+.ghl-doc__meta dt { @apply text-gray-500; }
+.ghl-doc__notes { @apply mt-6 whitespace-pre-line text-sm text-gray-600; }
+.ghl-doc__actions { @apply mt-6 flex justify-end; }
+.ghl-doc__footer { @apply text-center text-xs text-gray-500; }
+.ghl-card { @apply rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200; }
+.ghl-alert { @apply rounded-xl px-4 py-3 text-sm font-medium; }
+.ghl-alert--success { @apply bg-success-50 text-success-800 ring-1 ring-success-200; }
+.ghl-alert--warning { @apply bg-warning-50 text-warning-800 ring-1 ring-warning-200; }
+.ghl-alert--danger { @apply bg-danger-50 text-danger-800 ring-1 ring-danger-200; }
+.ghl-table { @apply w-full text-sm; }
+.ghl-table th { @apply border-b border-gray-200 py-2 text-left font-medium text-gray-500; }
+.ghl-table td { @apply border-b border-gray-100 py-2; }
+.ghl-table .num { @apply text-right tabular-nums; }
+.ghl-table tfoot td { @apply border-0 py-1 text-right; }
+.ghl-table tfoot td:first-child { @apply text-gray-500; }
+.ghl-table__total td { @apply text-base font-semibold text-gray-900; }
+.ghl-stack { @apply mt-4 flex flex-col gap-3; }
+.ghl-row { @apply flex flex-wrap items-center gap-3; }
+.ghl-row--between { @apply justify-between; }
+.ghl-radio { @apply flex items-center gap-2 text-sm; }
+.ghl-input { @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500; }
+.ghl-signature { font-family: 'Brush Script MT', 'Segoe Script', cursive; @apply text-2xl; }
+.ghl-error { @apply text-sm text-danger-600; }
+.ghl-button--secondary { @apply bg-white text-gray-800 ring-1 ring-gray-300 hover:bg-gray-50; }
+.ghl-button:disabled { @apply cursor-not-allowed opacity-50; }
+.ghl-link { @apply text-sm font-medium text-primary-600 hover:underline; }
+.ghl-stars { @apply flex gap-1 text-4xl; }
+.ghl-stars label { @apply cursor-pointer text-gray-300 transition; }
+.ghl-stars label.is-on { @apply text-warning-400; }
+.ghl-stars input { @apply sr-only; }
+.ghl-progress { @apply mt-4 h-2 overflow-hidden rounded-full bg-gray-100; }
+.ghl-progress > div { @apply h-full rounded-full bg-primary-600; }
+.ghl-lessons { @apply flex flex-col divide-y divide-gray-100; }
+.ghl-lessons a { @apply flex items-center gap-3 py-3 hover:text-primary-600; }
+.ghl-lessons__check { @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ring-1 ring-gray-300; }
+.ghl-lessons .is-done .ghl-lessons__check { @apply bg-success-500 text-white ring-success-500; }
+.ghl-video { @apply my-4 aspect-video overflow-hidden rounded-xl bg-black; }
+.ghl-video iframe { @apply h-full w-full; }
+.ghl-prose { @apply leading-relaxed; }
+.ghl-prose p { @apply my-3; }
+.ghl-prose h2 { @apply mt-6; }
+.ghl-prose ul { @apply my-3 list-disc pl-6; }
+.ghl-prose ol { @apply my-3 list-decimal pl-6; }
+.ghl-prose a { @apply text-primary-600 underline; }
+
+/* ---------- Activity timeline ---------- */
+.ghl-timeline { @apply flex flex-col gap-4; }
+.ghl-timeline__item { @apply flex gap-3; }
+.ghl-timeline__icon { @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10; }
+.ghl-timeline__body { @apply min-w-0 flex-1 text-sm; }
+.ghl-timeline__meta { @apply text-xs text-gray-500; }

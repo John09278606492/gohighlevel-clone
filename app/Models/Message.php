@@ -20,6 +20,16 @@ class Message extends Model
             $conversation->save();
 
             $conversation->contact?->forceFill(['last_activity_at' => now()])->saveQuietly();
+
+            if ($message->channel !== 'note' && ! $message->campaign_id) {
+                $channel = $message->channel === 'sms' ? 'SMS' : ucfirst($message->channel);
+                Activity::log(
+                    $conversation->contact,
+                    $message->direction === 'inbound' ? 'message_in' : 'message_out',
+                    ($message->direction === 'inbound' ? "{$channel} received: " : "{$channel} sent: ").\Illuminate\Support\Str::limit($message->subject ?: strip_tags($message->body), 80),
+                    $message,
+                );
+            }
         });
     }
 

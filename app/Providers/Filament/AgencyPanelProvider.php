@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Models\SubAccount;
+use App\Support\Branding;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -31,11 +32,11 @@ class AgencyPanelProvider extends PanelProvider
         return $panel
             ->id('agency')
             ->path('agency')
-            ->brandName(fn () => config('app.name').' Agency')
+            ->brandName(fn () => Branding::name().' Agency')
+            ->brandLogo(fn () => Branding::logoUrl())
+            ->favicon(fn () => Branding::faviconUrl())
             ->login()
-            ->colors([
-                'primary' => Color::Violet,
-            ])
+            ->colors(fn () => ['primary' => Branding::primary(Color::Violet)])
             ->viteTheme('resources/css/filament/app/theme.css')
             ->navigationItems([
                 NavigationItem::make('back-to-sub-account')

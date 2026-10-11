@@ -13,14 +13,20 @@
                     @if ($message->status === 'failed')
                         · <span class="ghl-msg__failed" title="{{ $message->error }}">failed</span>
                     @elseif ($message->status === 'queued')
-                        · queued
+                        · <span title="{{ $message->error }}">queued</span>
+                    @elseif ($message->status === 'delivered')
+                        · delivered
                     @endif
                 </div>
                 <div class="ghl-msg__bubble">
                     @if ($message->subject)
                         <div class="ghl-msg__subject">{{ $message->subject }}</div>
                     @endif
-                    {!! nl2br(e($message->body)) !!}
+                    @if ($message->channel === 'email' && $message->body !== strip_tags($message->body))
+                        <div class="ghl-prose">{!! str($message->body)->sanitizeHtml() !!}</div>
+                    @else
+                        {!! nl2br(e($message->body)) !!}
+                    @endif
                 </div>
             </div>
         @empty
