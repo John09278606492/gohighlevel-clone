@@ -8,13 +8,13 @@ where php >nul 2>nul || (echo Missing PHP. Install PHP 8.3+ ^(Laragon or Herd is
 where composer >nul 2>nul || (echo Missing Composer. Install it from getcomposer.org, then run this again. & pause & exit /b 1)
 where npm >nul 2>nul || (echo Missing Node.js. Install it from nodejs.org, then run this again. & pause & exit /b 1)
 
-set MISSING=
-for %%E in (bcmath intl zip pdo_sqlite mbstring fileinfo) do (
-  php -m | findstr /i /x "%%E" >nul || call set MISSING=%%MISSING%% %%E
-)
-if not "%MISSING%"=="" (
-  echo PHP is missing these extensions:%MISSING%
-  echo Open your php.ini, remove the ; in front of extension=NAME for each one, save, and run this again.
+REM Check PHP and switch on any missing extensions in php.ini automatically.
+php scripts\check-php.php --fix
+php scripts\check-php.php >nul
+if errorlevel 1 (
+  echo.
+  php scripts\check-php.php
+  echo PHP is still not ready. See the message above.
   pause
   exit /b 1
 )

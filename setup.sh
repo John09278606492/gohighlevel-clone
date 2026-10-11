@@ -8,15 +8,7 @@ for cmd in php composer npm; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "Missing: $cmd. Install PHP 8.3+, Composer and Node.js, then run this again."; exit 1; }
 done
 
-missing=""
-for ext in bcmath intl zip pdo_sqlite mbstring; do
-  php -m | grep -qi "^$ext\$" || missing="$missing $ext"
-done
-if [ -n "$missing" ]; then
-  echo "PHP is missing these extensions:$missing"
-  echo "Enable them in php.ini (or install php-<name>), then run this again."
-  exit 1
-fi
+php scripts/check-php.php || exit 1
 
 composer run setup
 
