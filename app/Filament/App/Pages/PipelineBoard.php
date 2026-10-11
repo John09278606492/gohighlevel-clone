@@ -7,7 +7,6 @@ use App\Models\Opportunity;
 use App\Models\Pipeline;
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -97,6 +96,9 @@ class PipelineBoard extends BoardPage
             ->columnActions([
                 CreateAction::make()
                     ->label('Add opportunity')
+                    ->icon('heroicon-m-plus')
+                    ->iconButton()
+                    ->tooltip('Add opportunity')
                     ->model(Opportunity::class)
                     ->schema(fn (Schema $schema) => OpportunityResource::form($schema))
                     ->fillForm(fn (array $arguments) => [
@@ -117,13 +119,13 @@ class PipelineBoard extends BoardPage
             ])
             ->cardActions([
                 EditAction::make()->model(Opportunity::class)->schema(fn (Schema $schema) => OpportunityResource::form($schema)),
-                ActionGroup::make([
-                    Action::make('won')->label('Mark won')->icon('heroicon-o-trophy')->color('success')
-                        ->action(fn (Opportunity $record) => $record->update(['status' => 'won'])),
-                    Action::make('lost')->label('Mark lost')->icon('heroicon-o-x-circle')->color('danger')
-                        ->action(fn (Opportunity $record) => $record->update(['status' => 'lost'])),
-                    DeleteAction::make()->model(Opportunity::class),
-                ]),
+                Action::make('won')->label('Mark won')->icon('heroicon-o-trophy')->color('success')
+                    ->visible(fn (Opportunity $record) => $record->status !== 'won')
+                    ->action(fn (Opportunity $record) => $record->update(['status' => 'won'])),
+                Action::make('lost')->label('Mark lost')->icon('heroicon-o-x-circle')->color('danger')
+                    ->visible(fn (Opportunity $record) => $record->status !== 'lost')
+                    ->action(fn (Opportunity $record) => $record->update(['status' => 'lost'])),
+                DeleteAction::make()->model(Opportunity::class),
             ])
             ->cardAction('edit');
     }
